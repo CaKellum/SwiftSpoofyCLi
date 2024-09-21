@@ -4,6 +4,7 @@ import FoundationNetworking
 import CoreFoundation
 import Swift
 
+
 @main
 struct SpoofyTerminal: ParsableCommand {
 
@@ -66,8 +67,7 @@ enum SpotifyAction: String, CaseIterable {
 
     private static func next() {}
 
-    private static func prev() {
-    }
+    private static func prev() {}
 
     @discardableResult
     private static func authenticate() -> Data {
@@ -75,8 +75,9 @@ enum SpotifyAction: String, CaseIterable {
             return data
         } else {
             Task {
-               let data = await NetworkRequestType.get.makeRequest(with: URLRequest(url: URL(string: "")!))
-               return data
+                let data = Data(contentsOf: URL(string: "")!)
+
+                return data
             }
         }
     }
@@ -96,5 +97,38 @@ enum NetworkRequestType: String {
     func makeRequest(with request: URLRequest) async {
         _ = await URLSession.shared.data(for: request)
     }
+}
+
+struct AuthenticationHelper {
+    private static let possibleChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890"
+
+
+    var codeVerifier: String? 
+
+    init() {
+        self.codeVerifier = Self.genearteCodeVerifier(64)
+    }
+
+    static func genearteCodeVerifier(_ length: Int) -> String {
+        let count = possibleChars.count
+        var retStr = ""
+        for _ in 0..<length {
+            let index = Int.random(in: 0..<count)
+            retStr += possibleChars[index]
+        }
+        return retStr
+    }
+    
+    static func toBase64(_ input: String) -> String {
+        return input.data(using: .utf8)
+                    .base64EncodedData()
+                    .replacingOcurences(of: "=", with: "")
+                    .replacingOcurences(of: "+", with: "-")
+                    .replacingOcurences(of: "/", with: "_")
+    }
 
 }
+
+
+
+
